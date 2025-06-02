@@ -12,6 +12,8 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.mrgomez.bloodpressurecheck.databinding.ActivityMainBinding
 import com.mrgomez.bloodpressurecheck.model.BloodPressureRecord
 import java.util.Date
@@ -178,8 +180,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun signOut() {
+        // Cerrar sesión de Firebase
         auth.signOut()
-        startActivity(Intent(this, LoginActivity::class.java))
-        finish()
+        
+        // Cerrar sesión de Google
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+        
+        googleSignInClient.signOut().addOnCompleteListener {
+            Log.d(TAG, "Sesión de Google cerrada")
+            // Redirigir a la pantalla de login
+            startActivity(Intent(this, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            finish()
+        }
     }
 }
