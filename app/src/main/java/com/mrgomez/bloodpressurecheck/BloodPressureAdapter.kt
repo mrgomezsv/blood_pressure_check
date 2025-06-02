@@ -37,7 +37,6 @@ class BloodPressureAdapter : ListAdapter<BloodPressureRecord, BloodPressureAdapt
                 tvDiastolic.text = record.diastolic.toString()
                 tvPulse.text = record.pulse.toString()
                 tvNotes.text = record.notes
-                tvDate.text = dateFormat.format(record.timestamp)
             }
         }
     }
