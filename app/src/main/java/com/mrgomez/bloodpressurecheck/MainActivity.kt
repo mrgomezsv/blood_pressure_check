@@ -16,12 +16,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.mrgomez.bloodpressurecheck.databinding.ActivityMainBinding
 import com.mrgomez.bloodpressurecheck.model.BloodPressureRecord
+import com.mrgomez.bloodpressurecheck.model.BloodPressureCategory
 import java.util.Date
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import android.graphics.Typeface
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,7 +67,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = BloodPressureAdapter()
+        adapter = BloodPressureAdapter { record ->
+            val dialog = CommentDetailDialogFragment.newInstance(
+                record.systolic,
+                record.diastolic,
+                record.pulse,
+                record.timestamp.time,
+                record.notes
+            )
+            dialog.show(supportFragmentManager, "CommentDetailDialog")
+        }
         binding.rvHistory.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = this@MainActivity.adapter
@@ -79,6 +90,9 @@ class MainActivity : AppCompatActivity() {
         lineChart.axisRight.isEnabled = false
         lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         lineChart.legend.isEnabled = true
+        lineChart.setNoDataText("Por favor registra datos para iniciar tu seguimiento!")
+        lineChart.setNoDataTextColor(0xFF1976D2.toInt())
+        lineChart.setNoDataTextTypeface(Typeface.DEFAULT_BOLD)
     }
 
     private fun updateLineChart() {
@@ -105,33 +119,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveRecord(systolic: Int, diastolic: Int, pulse: Int?, notes: String, timestamp: Date) {
-        val userId = auth.currentUser?.uid
-        if (userId == null) {
-            Log.e(TAG, "Error: userId es null")
-            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_LONG).show()
-            return
-        }
-        Log.d(TAG, "Intentando guardar registro para usuario: $userId")
-        Log.d(TAG, "Datos a guardar - Sistólica: $systolic, Diastólica: $diastolic, Pulso: $pulse, Fecha: $timestamp")
-        val record = hashMapOf(
-            "systolic" to systolic,
-            "diastolic" to diastolic,
-            "pulse" to (pulse ?: 0),
-            "notes" to notes,
-            "timestamp" to com.google.firebase.Timestamp(timestamp)
+        val userId = auth.currentUser?.uid ?: return
+        val record = BloodPressureRecord(
+            userId = userId,
+            systolic = systolic,
+            diastolic = diastolic,
+            pulse = pulse ?: 0,
+            notes = notes,
+            timestamp = timestamp
         )
+
         db.collection("registro_medico_usuarios")
             .document(userId)
             .collection("registros")
             .add(record)
-            .addOnSuccessListener { documentReference ->
-                Log.d(TAG, "Documento guardado con ID: ${documentReference.id}")
+            .addOnSuccessListener { documentRef ->
+                Log.d(TAG, "Registro guardado con ID: ${documentRef.id}")
                 Toast.makeText(this, "Registro guardado exitosamente", Toast.LENGTH_SHORT).show()
-                loadRecords()
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Error al guardar documento", e)
-                Toast.makeText(this, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
+                Log.e(TAG, "Error al guardar registro", e)
+                Toast.makeText(this, "Error al guardar registro: ${e.message}", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -152,40 +160,44 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "No hay registros disponibles")
                     return@addSnapshotListener
                 }
-                records = snapshot.documents.mapNotNull { doc ->
-                    try {
-                        val id = doc.id
-                        val systolic = doc.getLong("systolic")?.toInt() ?: 0
-                        val diastolic = doc.getLong("diastolic")?.toInt() ?: 0
-                        val pulse = doc.getLong("pulse")?.toInt() ?: 0
-                        val notes = doc.getString("notes") ?: ""
-                        val timestamp = doc.getTimestamp("timestamp")?.toDate()
-                        if (timestamp == null) {
-                            Log.e(TAG, "Documento $id omitido: campo 'timestamp' nulo o inválido")
-                            return@mapNotNull null
-                        }
-                        BloodPressureRecord(
-                            id = id,
-                            userId = userId,
-                            systolic = systolic,
-                            diastolic = diastolic,
-                            pulse = pulse,
-                            notes = notes,
-                            timestamp = timestamp
-                        )
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error al convertir documento ${doc.id}: ${e.message}", e)
-                        null
-                    }
+
+                val newRecords = snapshot.documents.mapNotNull { doc ->
+                    val systolic = doc.getLong("systolic")?.toInt() ?: return@mapNotNull null
+                    val diastolic = doc.getLong("diastolic")?.toInt() ?: return@mapNotNull null
+                    val pulse = doc.getLong("pulse")?.toInt() ?: 0
+                    val notes = doc.getString("notes") ?: "-- Sin Comentarios --"
+                    val timestamp = (doc.get("timestamp") as? Timestamp)?.toDate() ?: Date()
+                    BloodPressureRecord(
+                        id = doc.id,
+                        userId = userId,
+                        systolic = systolic,
+                        diastolic = diastolic,
+                        pulse = pulse,
+                        notes = notes,
+                        timestamp = timestamp
+                    )
                 }
-                Log.d(TAG, "Registros cargados: ${records.size}")
-                adapter.submitList(records)
+                records = newRecords
+                adapter.submitList(newRecords)
                 updateLineChart()
+                updateStatusSummary()
             }
     }
 
+    private fun updateStatusSummary() {
+        if (records.isEmpty()) {
+            binding.tvStatusSummary.text = "No hay registros disponibles."
+            return
+        }
+        val latest = records.first()
+        val category = BloodPressureCategory.getCategory(latest.systolic, latest.diastolic)
+        val summary = "Último registro (${latest.systolic}/${latest.diastolic} mmHg):\n" +
+                     "Categoría: " + category.description
+        binding.tvStatusSummary.text = summary
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
+        menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
@@ -200,23 +212,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun signOut() {
-        // Cerrar sesión de Firebase
         auth.signOut()
-        
-        // Cerrar sesión de Google
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        val googleSignInClient = GoogleSignIn.getClient(this, gso)
-        
-        googleSignInClient.signOut().addOnCompleteListener {
-            Log.d(TAG, "Sesión de Google cerrada")
-            // Redirigir a la pantalla de login
-            startActivity(Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
-            finish()
-        }
+        GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 }

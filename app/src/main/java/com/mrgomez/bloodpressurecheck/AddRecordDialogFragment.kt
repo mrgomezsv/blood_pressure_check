@@ -49,14 +49,16 @@ class AddRecordDialogFragment(
             val systolic = binding.etSystolic.text.toString().toIntOrNull()
             val diastolic = binding.etDiastolic.text.toString().toIntOrNull()
             val pulse = binding.etPulse.text.toString().toIntOrNull()
-            val notes = binding.etNotes.text.toString()
+            var notes = binding.etNotes.text.toString()
             val timestamp = calendar.time
 
             if (systolic == null || diastolic == null) {
                 Toast.makeText(requireContext(), "Por favor ingrese valores válidos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
+            if (notes.isBlank()) {
+                notes = "-- Sin Comentarios --"
+            }
             onSave(systolic, diastolic, pulse, notes, timestamp)
             dismiss()
         }

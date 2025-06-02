@@ -7,17 +7,23 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
+import com.mrgomez.bloodpressurecheck.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var db: FirebaseFirestore
 
     companion object {
         private const val TAG = "LoginActivity"
@@ -27,24 +33,17 @@ class LoginActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            Log.d(TAG, "Google Sign In exitoso: ${account.email}")
-            firebaseAuthWithGoogle(account.idToken!!)
-        } catch (e: ApiException) {
-            Log.e(TAG, "Error en Google Sign In", e)
-            Toast.makeText(this, "Error al iniciar sesión con Google: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
+        handleSignInResult(task)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // Configurar Firebase Auth
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
 
-        // Configurar Google Sign In
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -52,24 +51,14 @@ class LoginActivity : AppCompatActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // Configurar el botón de inicio de sesión
-        findViewById<SignInButton>(R.id.btnGoogleSignIn).setOnClickListener {
-            signOutAndSignIn()
+        binding.btnGoogleSignIn.setOnClickListener {
+            signIn()
         }
 
         // Verificar si el usuario ya está autenticado
         if (auth.currentUser != null) {
             Log.d(TAG, "Usuario ya autenticado: ${auth.currentUser?.email}")
-            startMainActivity()
-        }
-    }
-
-    private fun signOutAndSignIn() {
-        // Primero cerrar sesión de Google para permitir seleccionar cuenta
-        googleSignInClient.signOut().addOnCompleteListener {
-            Log.d(TAG, "Sesión de Google cerrada")
-            // Luego iniciar el proceso de inicio de sesión
-            signIn()
+            checkUserProfile()
         }
     }
 
@@ -78,22 +67,48 @@ class LoginActivity : AppCompatActivity() {
         signInLauncher.launch(signInIntent)
     }
 
+    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+            firebaseAuthWithGoogle(account.idToken!!)
+        } catch (e: ApiException) {
+            Log.w(TAG, "signInResult:failed code=" + e.statusCode)
+            Toast.makeText(this, "Error en el inicio de sesión: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    Log.d(TAG, "Autenticación con Firebase exitosa: ${auth.currentUser?.email}")
-                    startMainActivity()
+                    Log.d(TAG, "signInWithCredential:success")
+                    checkUserProfile()
                 } else {
-                    Log.e(TAG, "Error en autenticación con Firebase", task.exception)
-                    Toast.makeText(this, "Error de autenticación: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                    Log.w(TAG, "signInWithCredential:failure", task.exception)
+                    Toast.makeText(this, "Error en la autenticación: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
-    private fun startMainActivity() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
+    private fun checkUserProfile() {
+        val userId = auth.currentUser?.uid ?: return
+        db.collection("registro_medico_usuarios")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // El usuario ya tiene perfil, ir a MainActivity
+                    startActivity(Intent(this, MainActivity::class.java))
+                } else {
+                    // El usuario no tiene perfil, ir a UserProfileActivity
+                    startActivity(Intent(this, UserProfileActivity::class.java))
+                }
+                finish()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error al verificar el perfil del usuario", e)
+                Toast.makeText(this, "Error al verificar el perfil: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 } 

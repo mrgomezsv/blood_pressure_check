@@ -10,7 +10,9 @@ import com.mrgomez.bloodpressurecheck.model.BloodPressureRecord
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class BloodPressureAdapter : ListAdapter<BloodPressureRecord, BloodPressureAdapter.ViewHolder>(DiffCallback()) {
+class BloodPressureAdapter(
+    private val onItemClick: (BloodPressureRecord) -> Unit
+) : ListAdapter<BloodPressureRecord, BloodPressureAdapter.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemBloodPressureBinding.inflate(
@@ -18,7 +20,7 @@ class BloodPressureAdapter : ListAdapter<BloodPressureRecord, BloodPressureAdapt
             parent,
             false
         )
-        return ViewHolder(binding)
+        return ViewHolder(binding, onItemClick)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -26,7 +28,8 @@ class BloodPressureAdapter : ListAdapter<BloodPressureRecord, BloodPressureAdapt
     }
 
     class ViewHolder(
-        private val binding: ItemBloodPressureBinding
+        private val binding: ItemBloodPressureBinding,
+        private val onItemClick: (BloodPressureRecord) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -37,6 +40,7 @@ class BloodPressureAdapter : ListAdapter<BloodPressureRecord, BloodPressureAdapt
                 tvDiastolic.text = record.diastolic.toString()
                 tvPulse.text = record.pulse.toString()
                 tvNotes.text = record.notes
+                root.setOnClickListener { onItemClick(record) }
             }
         }
     }
