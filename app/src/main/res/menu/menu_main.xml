@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <!-- Opciones del menú desplegable -->
+    <item
+        android:id="@+id/action_profile"
+        android:title="Mi Perfil"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_settings"
+        android:title="Configuración"
+        android:icon="@android:drawable/ic_menu_manage"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_help"
+        android:title="Ayuda"
+        android:icon="@android:drawable/ic_menu_help"
+        app:showAsAction="never" />
+    
     <item
         android:id="@+id/action_sign_out"
         android:title="Cerrar sesión"
         android:icon="@android:drawable/ic_lock_power_off"
-        android:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 </menu> 

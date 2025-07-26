@@ -1,4 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Blood Pressure Check</string>
+    <string name="app_name">PRESIÓN ARTERIAL APP</string>
+    <string name="app_logo">Logo de la aplicación</string>
+    
+    <!-- Login Screen -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="login_subtitle">Monitorea tu salud cardiovascular</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="or_continue_with">O continúa con</string>
+    <string name="google_sign_in">Continuar con Google</string>
+    <string name="phone_sign_in">Continuar con Teléfono</string>
+    <string name="no_account">¿No tienes cuenta? </string>
+    <string name="sign_up_here">Regístrate aquí</string>
+    <string name="logging_in">Iniciando sesión...</string>
+    
+    <!-- Validation Messages -->
+    <string name="email_required">El email es requerido</string>
+    <string name="invalid_email_format">Formato de email inválido</string>
+    <string name="password_required">La contraseña es requerida</string>
+    <string name="password_min_length">La contraseña debe tener al menos 6 caracteres</string>
+    
+    <!-- Error Messages -->
+    <string name="error_invalid_credentials">Credenciales inválidas</string>
+    <string name="error_user_not_found">No existe una cuenta con este email</string>
+    <string name="error_wrong_password">Contraseña incorrecta</string>
+    <string name="error_network">Error de conexión. Verifica tu internet</string>
+    <string name="error_unknown">Error desconocido. Intenta de nuevo</string>
+    <string name="error_google_sign_in">Error en el inicio de sesión con Google</string>
+    <string name="error_phone_sign_in">Error en el inicio de sesión con teléfono</string>
+    
+    <!-- Success Messages -->
+    <string name="success_login">Inicio de sesión exitoso</string>
+    <string name="success_logout">Sesión cerrada exitosamente</string>
+    
+    <!-- Phone Authentication -->
+    <string name="phone_verification_title">Verificación de Teléfono</string>
+    <string name="phone_number_hint">Número de teléfono</string>
+    <string name="send_code">Enviar Código</string>
+    <string name="verify_code">Verificar Código</string>
+    <string name="code_hint">Código de verificación</string>
+    <string name="resend_code">Reenviar Código</string>
+    <string name="code_sent">Código enviado al número</string>
+    <string name="invalid_phone">Número de teléfono inválido</string>
+    <string name="invalid_code">Código inválido</string>
+    
+    <!-- Registration -->
+    <string name="register_title">Crear Cuenta</string>
+    <string name="register_subtitle">Únete a nuestra comunidad de salud</string>
+    <string name="name_hint">Nombre completo</string>
+    <string name="confirm_password_hint">Confirmar contraseña</string>
+    <string name="register_button">Crear Cuenta</string>
+    <string name="already_have_account">¿Ya tienes cuenta? </string>
+    <string name="sign_in_here">Inicia sesión aquí</string>
+    <string name="passwords_dont_match">Las contraseñas no coinciden</string>
+    
+    <!-- Profile -->
+    <string name="profile_title">Perfil de Usuario</string>
+    <string name="save_profile">Guardar Perfil</string>
+    <string name="profile_saved">Perfil guardado exitosamente</string>
+    
+    <!-- General -->
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="retry">Reintentar</string>
+    <string name="loading">Cargando...</string>
+    <string name="error">Error</string>
+    <string name="success">Éxito</string>
+    <string name="warning">Advertencia</string>
+    <string name="info">Información</string>
+    
+    <!-- Account Linking -->
+    <string name="account_exists_title">Cuenta Existente Encontrada</string>
+    <string name="link_account_success">Cuenta vinculada exitosamente</string>
+    <string name="link_phone_success">Teléfono vinculado exitosamente</string>
+    <string name="use_different_email">Por favor usa un email diferente</string>
+    <string name="use_different_phone">Por favor usa un teléfono diferente</string>
 </resources>

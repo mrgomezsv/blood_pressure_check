@@ -69,12 +69,13 @@ class UserProfileActivity : AppCompatActivity() {
             userId = userId,
             gender = gender,
             age = age,
-            height = height,
+            height = height.toInt(),
             weight = weightInKg,
-            weightUnit = weightUnit
+            weightUnit = weightUnit,
+            isProfileComplete = true
         )
 
-        db.collection("registro_medico_usuarios")
+        db.collection("users")
             .document(userId)
             .set(userProfile)
             .addOnSuccessListener {

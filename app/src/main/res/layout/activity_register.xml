@@ -13,18 +13,31 @@
         android:padding="24dp"
         android:minHeight="0dp">
 
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/btnBackToLogin"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Volver"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
         <!-- Logo/Icon Section -->
         <ImageView
             android:id="@+id/ivLogo"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="32dp"
             android:background="@drawable/logo_background"
             android:src="@drawable/ic_heart_pulse"
             android:contentDescription="@string/app_logo"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnBackToLogin"
             app:tint="@color/white" />
 
         <!-- Welcome Text -->
@@ -33,7 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/app_name"
+            android:text="@string/register_title"
             android:textColor="@color/white"
             android:textSize="28sp"
             android:textStyle="bold"
@@ -47,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Monitorea tu salud cardiovascular"
+            android:text="@string/register_subtitle"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:alpha="0.9"
@@ -56,9 +69,9 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tvWelcome" />
 
-        <!-- Login Card -->
+        <!-- Register Card -->
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardLogin"
+            android:id="@+id/cardRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="48dp"
@@ -78,23 +91,44 @@
                 android:orientation="vertical"
                 android:padding="32dp">
 
-                <!-- Login Title -->
+                <!-- Register Title -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Iniciar Sesión"
+                    android:text="@string/register_title"
                     android:textColor="@color/text_primary"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="32dp" />
 
+                <!-- Name Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/name_hint"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/primary"
+                    app:boxStrokeColor="@color/primary"
+                    app:hintTextColor="@color/primary">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName"
+                        android:maxLines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Email Input -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Correo electrónico"
+                    android:layout_marginTop="16dp"
+                    android:hint="@string/email_hint"
                     app:startIconDrawable="@drawable/ic_email"
                     app:startIconTint="@color/primary"
                     app:boxStrokeColor="@color/primary"
@@ -115,7 +149,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Contraseña"
+                    android:hint="@string/password_hint"
                     app:startIconDrawable="@drawable/ic_lock"
                     app:startIconTint="@color/primary"
                     app:endIconDrawable="@drawable/ic_visibility"
@@ -133,103 +167,44 @@
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Forgot Password Link -->
-                <TextView
-                    android:id="@+id/tvForgotPassword"
-                    android:layout_width="wrap_content"
+                <!-- Confirm Password Input -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilConfirmPassword"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_gravity="end"
-                    android:text="¿Olvidaste tu contraseña?"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:fontFamily="sans-serif-medium" />
+                    android:layout_marginTop="16dp"
+                    android:hint="@string/confirm_password_hint"
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:startIconTint="@color/primary"
+                    app:endIconDrawable="@drawable/ic_visibility"
+                    app:endIconTint="@color/text_secondary"
+                    app:passwordToggleEnabled="true"
+                    app:boxStrokeColor="@color/primary"
+                    app:hintTextColor="@color/primary">
 
-                <!-- Email Sign In Button -->
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etConfirmPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"
+                        android:maxLines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Register Button -->
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEmailSignIn"
+                    android:id="@+id/btnRegister"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
-                    android:layout_marginTop="24dp"
-                    android:text="Iniciar Sesión"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/register_button"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     app:cornerRadius="12dp"
                     app:backgroundTint="@color/primary"
                     app:rippleColor="@color/primary_light" />
 
-                <!-- Divider -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="24dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1"
-                        android:background="@color/divider" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp"
-                        android:text="O continúa con"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1"
-                        android:background="@color/divider" />
-
-                </LinearLayout>
-
-                <!-- Google Sign In Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGoogleSignIn"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="Continuar con Google"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    app:cornerRadius="12dp"
-                    app:backgroundTint="@color/surface"
-                    app:strokeColor="@color/divider"
-                    app:strokeWidth="1dp"
-                    app:icon="@drawable/ic_google"
-                    app:iconGravity="textStart"
-                    app:iconPadding="8dp"
-                    app:iconTint="@null" />
-
-                <!-- Phone Sign In Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPhoneSignIn"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:layout_marginTop="12dp"
-                    android:text="Continuar con Teléfono"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_primary"
-                    app:cornerRadius="12dp"
-                    app:backgroundTint="@color/surface"
-                    app:strokeColor="@color/divider"
-                    app:strokeWidth="1dp"
-                    app:icon="@drawable/ic_phone"
-                    app:iconGravity="textStart"
-                    app:iconPadding="8dp"
-                    app:iconTint="@color/primary" />
-
-                <!-- Sign Up Link -->
+                <!-- Sign In Link -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -240,15 +215,15 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="¿No tienes cuenta? "
+                        android:text="@string/already_have_account"
                         android:textColor="@color/text_secondary"
                         android:textSize="14sp" />
 
                     <TextView
-                        android:id="@+id/tvSignUp"
+                        android:id="@+id/tvSignIn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Regístrate aquí"
+                        android:text="@string/sign_in_here"
                         android:textColor="@color/primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -300,7 +275,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Iniciando sesión..."
+                        android:text="Creando cuenta..."
                         android:textColor="@color/text_primary"
                         android:textSize="16sp"
                         android:fontFamily="sans-serif-medium" />

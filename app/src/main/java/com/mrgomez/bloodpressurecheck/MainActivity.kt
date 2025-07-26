@@ -61,9 +61,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         Log.d(TAG, "Usuario autenticado: ${currentUser.uid}")
+        Log.d(TAG, "Email del usuario: ${currentUser.email}")
+        
         setupRecyclerView()
         setupClickListeners()
         loadRecords()
+        
+        // Mostrar mensaje de bienvenida
+        showWelcomeMessage(currentUser)
     }
 
     private fun setupRecyclerView() {
@@ -203,18 +208,60 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_profile -> {
+                // Ir al perfil del usuario
+                startActivity(Intent(this, UserProfileActivity::class.java))
+                true
+            }
+            R.id.action_settings -> {
+                // Mostrar configuración (por ahora solo un mensaje)
+                Toast.makeText(this, "Configuración próximamente", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_help -> {
+                // Mostrar ayuda (por ahora solo un mensaje)
+                Toast.makeText(this, "Ayuda próximamente", Toast.LENGTH_SHORT).show()
+                true
+            }
             R.id.action_sign_out -> {
-                signOut()
+                showSignOutConfirmation()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
+    private fun showWelcomeMessage(user: com.google.firebase.auth.FirebaseUser) {
+        val welcomeMessage = when {
+            user.displayName != null -> "¡Bienvenido, ${user.displayName}!"
+            user.email != null -> "¡Bienvenido, ${user.email}!"
+            else -> "¡Bienvenido!"
+        }
+        Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showSignOutConfirmation() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage("¿Estás seguro de que quieres cerrar sesión?")
+            .setPositiveButton("Sí, cerrar sesión") { _, _ ->
+                signOut()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
     private fun signOut() {
         auth.signOut()
         GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
-        startActivity(Intent(this, LoginActivity::class.java))
+        
+        // Mostrar mensaje de confirmación
+        Toast.makeText(this, "Sesión cerrada exitosamente", Toast.LENGTH_SHORT).show()
+        
+        // Ir a la pantalla de login
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
         finish()
     }
 }
