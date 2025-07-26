@@ -17,7 +17,7 @@
         
         <!-- Background colors -->
         <item name="android:colorBackground">@color/black</item>
-        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorSurface">@color/black</item>
         <item name="colorOnSurface">@color/white</item>
         
         <!-- Text colors -->
