@@ -18,6 +18,7 @@ import com.mrgomez.bloodpressurecheck.databinding.ActivityMainBinding
 import com.mrgomez.bloodpressurecheck.model.BloodPressureRecord
 import com.mrgomez.bloodpressurecheck.model.BloodPressureCategory
 import java.util.Date
+import java.util.Calendar
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
@@ -67,8 +68,8 @@ class MainActivity : AppCompatActivity() {
         setupClickListeners()
         loadRecords()
         
-        // Mostrar mensaje de bienvenida
-        showWelcomeMessage(currentUser)
+        // Mostrar saludo personalizado
+        showPersonalizedGreeting(currentUser)
     }
 
     private fun setupRecyclerView() {
@@ -201,6 +202,111 @@ class MainActivity : AppCompatActivity() {
         binding.tvStatusSummary.text = summary
     }
 
+    private fun showPersonalizedGreeting(user: com.google.firebase.auth.FirebaseUser) {
+        // Obtener el saludo según la hora del día
+        val greeting = getGreetingByTime()
+        
+        // Obtener el nombre del usuario
+        val userName = getUserDisplayName(user)
+        
+        // Actualizar los TextViews
+        binding.tvGreeting.text = greeting
+        binding.tvUserName.text = userName
+        
+        Log.d(TAG, "Saludo personalizado: $greeting $userName")
+    }
+
+    private fun getGreetingByTime(): String {
+        val calendar = Calendar.getInstance()
+        val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+        
+        return when {
+            hourOfDay < 12 -> getString(R.string.greeting_morning)
+            hourOfDay < 18 -> getString(R.string.greeting_afternoon)
+            else -> getString(R.string.greeting_evening)
+        }
+    }
+
+    private fun getUserDisplayName(user: com.google.firebase.auth.FirebaseUser): String {
+        // Intentar obtener el nombre del perfil de Firestore primero
+        val userId = user.uid
+        
+        // Buscar en la colección 'users' (nueva estructura)
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val name = document.getString("name")
+                    if (!name.isNullOrBlank()) {
+                        binding.tvUserName.text = name
+                        return@addOnSuccessListener
+                    }
+                }
+                
+                // Si no se encuentra en 'users', buscar en 'registro_medico_usuarios' (legacy)
+                db.collection("registro_medico_usuarios").document(userId).get()
+                    .addOnSuccessListener { legacyDocument ->
+                        if (legacyDocument.exists()) {
+                            val name = legacyDocument.getString("name")
+                            if (!name.isNullOrBlank()) {
+                                binding.tvUserName.text = name
+                                return@addOnSuccessListener
+                            }
+                        }
+                        
+                        // Si no se encuentra en ninguna colección, usar displayName de Firebase Auth
+                        val displayName = user.displayName
+                        if (!displayName.isNullOrBlank()) {
+                            binding.tvUserName.text = displayName
+                        } else {
+                            // Si no hay displayName, usar email o "Usuario"
+                            val email = user.email
+                            if (!email.isNullOrBlank()) {
+                                // Extraer solo la parte antes del @ del email
+                                val emailName = email.substringBefore("@")
+                                binding.tvUserName.text = emailName.replaceFirstChar { it.uppercase() }
+                            } else {
+                                binding.tvUserName.text = "Usuario"
+                            }
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Error al obtener nombre del usuario legacy", e)
+                        // Fallback a displayName o email
+                        val displayName = user.displayName
+                        if (!displayName.isNullOrBlank()) {
+                            binding.tvUserName.text = displayName
+                        } else {
+                            val email = user.email
+                            if (!email.isNullOrBlank()) {
+                                val emailName = email.substringBefore("@")
+                                binding.tvUserName.text = emailName.replaceFirstChar { it.uppercase() }
+                            } else {
+                                binding.tvUserName.text = "Usuario"
+                            }
+                        }
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error al obtener nombre del usuario", e)
+                // Fallback a displayName o email
+                val displayName = user.displayName
+                if (!displayName.isNullOrBlank()) {
+                    binding.tvUserName.text = displayName
+                } else {
+                                            val email = user.email
+                        if (!email.isNullOrBlank()) {
+                            val emailName = email.substringBefore("@")
+                            binding.tvUserName.text = emailName.replaceFirstChar { it.uppercase() }
+                    } else {
+                        binding.tvUserName.text = "Usuario"
+                    }
+                }
+            }
+        
+        // Retornar un valor temporal mientras se carga
+        return "Usuario"
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -231,23 +337,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showWelcomeMessage(user: com.google.firebase.auth.FirebaseUser) {
-        val welcomeMessage = when {
-            user.displayName != null -> "¡Bienvenido, ${user.displayName}!"
-            user.email != null -> "¡Bienvenido, ${user.email}!"
-            else -> "¡Bienvenido!"
-        }
-        Toast.makeText(this, welcomeMessage, Toast.LENGTH_SHORT).show()
-    }
-
     private fun showSignOutConfirmation() {
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Cerrar sesión")
-            .setMessage("¿Estás seguro de que quieres cerrar sesión?")
-            .setPositiveButton("Sí, cerrar sesión") { _, _ ->
+            .setTitle(getString(R.string.sign_out_confirmation_title))
+            .setMessage(getString(R.string.sign_out_confirmation_message))
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
                 signOut()
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -256,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
         
         // Mostrar mensaje de confirmación
-        Toast.makeText(this, "Sesión cerrada exitosamente", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.sign_out_success), Toast.LENGTH_SHORT).show()
         
         // Ir a la pantalla de login
         val intent = Intent(this, LoginActivity::class.java)
