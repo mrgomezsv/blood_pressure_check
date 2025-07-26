@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -43,7 +44,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
@@ -121,6 +121,48 @@ class MainActivity : AppCompatActivity() {
                 saveRecord(systolic, diastolic, pulse, notes, timestamp)
             }
             dialog.show(supportFragmentManager, "AddRecordDialog")
+        }
+
+        // Configurar el botón de menú
+        binding.btnMenu.setOnClickListener {
+            showPopupMenu()
+        }
+    }
+
+    private fun showPopupMenu() {
+        val popup = PopupMenu(this, binding.btnMenu)
+        popup.menuInflater.inflate(R.menu.menu_main, popup.menu)
+        
+        popup.setOnMenuItemClickListener { item ->
+            handleMenuItemClick(item)
+            true
+        }
+        
+        popup.show()
+    }
+
+    private fun handleMenuItemClick(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_profile -> {
+                // Ir al perfil del usuario
+                startActivity(Intent(this, UserProfileActivity::class.java))
+                true
+            }
+            R.id.action_settings -> {
+                // Mostrar configuración (por ahora solo un mensaje)
+                Toast.makeText(this, "Configuración próximamente", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_help -> {
+                // Mostrar ayuda (por ahora solo un mensaje)
+                Toast.makeText(this, "Ayuda próximamente", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.action_sign_out -> {
+                showSignOutConfirmation()
+                true
+            }
+            else -> false
         }
     }
 
@@ -293,10 +335,10 @@ class MainActivity : AppCompatActivity() {
                 if (!displayName.isNullOrBlank()) {
                     binding.tvUserName.text = displayName
                 } else {
-                                            val email = user.email
-                        if (!email.isNullOrBlank()) {
-                            val emailName = email.substringBefore("@")
-                            binding.tvUserName.text = emailName.replaceFirstChar { it.uppercase() }
+                    val email = user.email
+                    if (!email.isNullOrBlank()) {
+                        val emailName = email.substringBefore("@")
+                        binding.tvUserName.text = emailName.replaceFirstChar { it.uppercase() }
                     } else {
                         binding.tvUserName.text = "Usuario"
                     }
@@ -305,36 +347,6 @@ class MainActivity : AppCompatActivity() {
         
         // Retornar un valor temporal mientras se carga
         return "Usuario"
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_profile -> {
-                // Ir al perfil del usuario
-                startActivity(Intent(this, UserProfileActivity::class.java))
-                true
-            }
-            R.id.action_settings -> {
-                // Mostrar configuración (por ahora solo un mensaje)
-                Toast.makeText(this, "Configuración próximamente", Toast.LENGTH_SHORT).show()
-                true
-            }
-            R.id.action_help -> {
-                // Mostrar ayuda (por ahora solo un mensaje)
-                Toast.makeText(this, "Ayuda próximamente", Toast.LENGTH_SHORT).show()
-                true
-            }
-            R.id.action_sign_out -> {
-                showSignOutConfirmation()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     private fun showSignOutConfirmation() {
